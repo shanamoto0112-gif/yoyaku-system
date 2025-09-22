@@ -521,17 +521,18 @@
     </div>
 
     <!-- ↓↓↓ ここから下に貼り付け ↓↓↓ -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
 
-    <!-- ▼▼▼ ここからFirebase接続コードを追加 ▼▼▼ -->
     <!-- Firebase App (コア) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <!-- Firebase Firestore (データベース) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
+    
     <script>
-    // TODO: Replace the following with your app's Firebase project configuration
+        // =======================================================================
+        // 【最重要】↓ この下の「...」の部分だけを、あなたの情報に書き換えてください
+        // =======================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDsgnJTAbc7FShXFXWBsR25IDXQox8sQjM",
             authDomain: "maruni-yoyaku-system.firebaseapp.com",
@@ -540,21 +541,20 @@
             messagingSenderId: "419757490787",
             appId: "1:419757490787:web:095eb61e85d008ea2b2e56"
         };
-       // Firebaseを初期化する
+        // =======================================================================
+        // ↑ 書き換えるのはこの中だけです ↑
+        // =======================================================================
+
+        // Firebaseを初期化する
         firebase.initializeApp(firebaseConfig);
         // Firestoreデータベースへの参照を準備する
         const db = firebase.firestore();
 
         document.addEventListener('DOMContentLoaded', () => {
-            // =========================================================================
             // Netlify Identityのチェックを一時的に無効化
-            // 常に編集者として動作するように設定
-            // =========================================================================
             const isEditor = true;
 
-            // =========================================================================
             // 1. 変数と定数の定義
-            // =========================================================================
             const totalLanes = 6;
             const slotWidth = 30;
             const startHour = 8;
@@ -562,256 +562,93 @@
             const endHour = 19;
             let currentDate = new Date();
             let allBookings = [];
-            let currentClickedSlotInfo = null;
             let startPicker, endPicker;
             let editingBookingId = null;
             let currentView = 'daily';
 
-            // =========================================================================
             // 2. Firebase(Firestore)機能
-            // =========================================================================
             function setupRealtimeListener() {
                 db.collection('yoyaku_bookings').onSnapshot(snapshot => {
-                    allBookings = snapshot.docs.map(doc => ({
-                        ...doc.data(),
-                        id: doc.id,
-                        startDate: doc.data().startDate.toDate(),
-                        endDate: doc.data().endDate.toDate()
-                    }));
-                    console.log('Firestoreからデータを取得しました:', allBookings.length, '件');
+                    allBookings = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, startDate: doc.data().startDate.toDate(), endDate: doc.data().endDate.toDate() }));
                     renderForDate(currentDate);
                     updateSuggestionLists();
-                }, error => {
-                    console.error("データの取得に失敗しました: ", error);
-                    alert("データベースからのデータ取得に失敗しました。ページを再読み込みしてください。");
-                });
+                }, error => console.error("データの取得に失敗しました: ", error));
             }
-
             async function saveBooking(bookingData) {
                 try {
-                    const dataToSave = { ...bookingData,
-                        startDate: firebase.firestore.Timestamp.fromDate(bookingData.startDate),
-                        endDate: firebase.firestore.Timestamp.fromDate(bookingData.endDate)
-                    };
+                    const dataToSave = { ...bookingData, startDate: firebase.firestore.Timestamp.fromDate(bookingData.startDate), endDate: firebase.firestore.Timestamp.fromDate(bookingData.endDate) };
                     const docRef = dataToSave.id ? db.collection('yoyaku_bookings').doc(dataToSave.id) : db.collection('yoyaku_bookings').doc();
                     if (dataToSave.id) delete dataToSave.id;
                     await docRef.set(dataToSave, { merge: true });
-                    console.log('予約を保存しました:', docRef.id);
                     return true;
-                } catch (error) {
-                    console.error('予約の保存に失敗しました:', error);
-                    alert('予約の保存に失敗しました。');
-                    return false;
-                }
+                } catch (error) { console.error('予約の保存に失敗しました:', error); alert('予約の保存に失敗しました。'); return false; }
             }
-
             async function deleteBooking(bookingId) {
-                try {
-                    await db.collection('yoyaku_bookings').doc(bookingId).delete();
-                    console.log('予約を削除しました:', bookingId);
-                    return true;
-                } catch (error) {
-                    console.error('予約の削除に失敗しました:', error);
-                    alert('予約の削除に失敗しました。');
-                    return false;
-                }
+                try { await db.collection('yoyaku_bookings').doc(bookingId).delete(); return true; }
+                catch (error) { console.error('予約の削除に失敗しました:', error); alert('予約の削除に失敗しました。'); return false; }
             }
-            
-            function exportData() { /* ... 元のコードのまま ... */ }
-            function importData(fileContent) { /* ... 元のコードのまま ... */ }
-            function clearAllData() {
-                if (confirm('全ての予約データを削除しますか？\nこの操作は取り消せません。')) {
-                    allBookings.forEach(booking => deleteBooking(booking.id));
-                }
-            }
+            function clearAllData() { if (confirm('全ての予約データを削除しますか？')) { allBookings.forEach(b => deleteBooking(b.id)); } }
 
-            // =========================================================================
             // 3. HTML要素の取得
-            // =========================================================================
-            const modal = document.getElementById('booking-modal');
-            const bookingForm = document.getElementById('booking-form');
-            const closeButton = document.querySelector('.modal-close-button');
-            const cancelButton = document.getElementById('cancel-button');
-            const infoBoxPlaceholder = document.getElementById('info-box-placeholder');
-            const infoBoxDetails = document.getElementById('info-box-details');
-            const infoBoxCloseButton = document.getElementById('info-box-close-button');
-            const prevDayButton = document.getElementById('prev-day-button');
-            const nextDayButton = document.getElementById('next-day-button');
-            const currentDateDisplay = document.getElementById('current-date-display');
-            const deleteBookingButton = document.getElementById('delete-booking-button');
-            const editBookingButton = document.getElementById('edit-booking-button');
-            const dailyListBody = document.getElementById('daily-list-body');
-            const todayButton = document.getElementById('today-button');
-            const backupButton = document.getElementById('backup-button');
-            const restoreButton = document.getElementById('restore-button');
-            const clearDataButton = document.getElementById('clear-data-button');
-            const restoreFileInput = document.getElementById('restore-file-input');
-            const viewToggleButton = document.getElementById('view-toggle-button');
-            const calendarContainer = document.getElementById('calendar-container');
-            const schedulerContainer = document.getElementById('main-scheduler-container');
-            const currentTimeLine = document.getElementById('current-time-line');
+            const modal = document.getElementById('booking-modal'), bookingForm = document.getElementById('booking-form'), closeButton = document.querySelector('.modal-close-button'), cancelButton = document.getElementById('cancel-button'), infoBoxPlaceholder = document.getElementById('info-box-placeholder'), infoBoxDetails = document.getElementById('info-box-details'), infoBoxCloseButton = document.getElementById('info-box-close-button'), prevDayButton = document.getElementById('prev-day-button'), nextDayButton = document.getElementById('next-day-button'), currentDateDisplay = document.getElementById('current-date-display'), deleteBookingButton = document.getElementById('delete-booking-button'), editBookingButton = document.getElementById('edit-booking-button'), dailyListBody = document.getElementById('daily-list-body'), todayButton = document.getElementById('today-button'), backupButton = document.getElementById('backup-button'), restoreButton = document.getElementById('restore-button'), clearDataButton = document.getElementById('clear-data-button'), restoreFileInput = document.getElementById('restore-file-input'), viewToggleButton = document.getElementById('view-toggle-button'), calendarContainer = document.getElementById('calendar-container'), schedulerContainer = document.getElementById('main-scheduler-container'), currentTimeLine = document.getElementById('current-time-line');
             
-            // =========================================================================
             // 4. ヘルパー関数とUI構築関数
-            // =========================================================================
-            function formatDate(date, format) {
-                const d = new Date(date); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); const h = String(d.getHours()).padStart(2, '0'); const min = String(d.getMinutes()).padStart(2, '0');
-                return format.replace('YYYY', y).replace('MM', m).replace('DD', day).replace('HH', h).replace('mm', min);
-            }
-
-            function updateCurrentTimeLine() {
-                const firstTimeSlotWrapper = schedulerContainer.querySelector('.time-slots-wrapper'); if (!firstTimeSlotWrapper) return; const now = new Date(); if (formatDate(now, 'YYYY-MM-DD') !== formatDate(currentDate, 'YYYY-MM-DD')) { currentTimeLine.style.display = 'none'; return; } const schedulerStartMillis = new Date(currentDate).setHours(startHour, startMinute, 0, 0); const schedulerEndMillis = new Date(currentDate).setHours(endHour, 0, 0, 0); const nowMillis = now.getTime(); if (nowMillis < schedulerStartMillis || nowMillis > schedulerEndMillis) { currentTimeLine.style.display = 'none'; return; } const containerRect = schedulerContainer.getBoundingClientRect(); const timeSlotsRect = firstTimeSlotWrapper.getBoundingClientRect(); const timelineStartOffset = timeSlotsRect.left - containerRect.left; const minutesFromStart = (nowMillis - schedulerStartMillis) / 60000; const timeOffset = minutesFromStart * (slotWidth / 15); const finalLeftPosition = timelineStartOffset + timeOffset; const timeHeader = schedulerContainer.querySelector('.time-header'); let totalLanesHeight = 0; schedulerContainer.querySelectorAll('.lane').forEach(lane => totalLanesHeight += lane.offsetHeight); currentTimeLine.style.top = `${timeHeader.offsetHeight}px`; currentTimeLine.style.height = `${totalLanesHeight}px`; currentTimeLine.style.transform = `translateX(${finalLeftPosition - 1}px)`; currentTimeLine.style.display = 'block';
-            }
-            
-            function updateDateDisplay(date) { currentDateDisplay.textContent = formatDate(date, currentView === 'daily' ? 'YYYY年MM月DD日' : 'YYYY年MM月'); }
-            
+            function formatDate(d, f) { const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), a=('0'+d.getDate()).slice(-2), h=('0'+d.getHours()).slice(-2), i=('0'+d.getMinutes()).slice(-2); return f.replace('YYYY',y).replace('MM',m).replace('DD',a).replace('HH',h).replace('mm',i); }
+            function updateDateDisplay(d) { currentDateDisplay.textContent = formatDate(d, 'YYYY年MM月DD日'); }
             function openModal(slotInfo, bookingToEdit = null) {
                 if (startPicker) startPicker.destroy(); if (endPicker) endPicker.destroy();
                 if (bookingToEdit) {
                     editingBookingId = bookingToEdit.id;
-                    Object.keys(bookingToEdit).forEach(key => {
-                        const el = document.getElementById(key.replace(/([A-Z])/g, "-$1").toLowerCase());
-                        if (el) el.value = bookingToEdit[key];
-                    });
-                    document.getElementById('lane-select').value = bookingToEdit.lane;
-                    ['loaner', 'pickup', 'delivery'].forEach(name => {
-                        const radio = document.querySelector(`input[name="${name}"][value="${bookingToEdit[name]}"]`);
-                        if (radio) radio.checked = true;
-                    });
-                    startPicker = flatpickr("#start-date-input", { locale: "ja", enableTime: true, time_2hr: true, minuteIncrement: 15, defaultDate: bookingToEdit.startDate });
-                    endPicker = flatpickr("#end-date-input", { locale: "ja", enableTime: true, time_2hr: true, minuteIncrement: 15, defaultDate: bookingToEdit.endDate, minDate: bookingToEdit.startDate });
+                    document.getElementById('user-name').value = bookingToEdit.userName; document.getElementById('car-number').value = bookingToEdit.carNumber; document.getElementById('booking-type').value = bookingToEdit.bookingType; document.getElementById('staff-select').value = bookingToEdit.staffName; document.getElementById('staff-select-2').value = bookingToEdit.staffName2 || ''; document.getElementById('lane-select').value = bookingToEdit.lane;
+                    ['loaner', 'pickup', 'delivery'].forEach(n=>{const r=document.querySelector(`input[name="${n}"][value="${bookingToEdit[n]}"]`);if(r)r.checked=true;});
+                    startPicker = flatpickr("#start-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: bookingToEdit.startDate });
+                    endPicker = flatpickr("#end-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: bookingToEdit.endDate, minDate: bookingToEdit.startDate });
                 } else {
-                    editingBookingId = null;
-                    bookingForm.reset();
-                    const initialStartDate = new Date(currentDate);
-                    if (slotInfo) initialStartDate.setHours(slotInfo.hour, slotInfo.minute, 0, 0);
-                    const initialEndDate = new Date(initialStartDate.getTime() + 60 * 60 * 1000);
-                    document.getElementById('lane-select').value = slotInfo.lane;
-                    startPicker = flatpickr("#start-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: initialStartDate });
-                    endPicker = flatpickr("#end-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: initialEndDate, minDate: initialStartDate });
+                    editingBookingId = null; bookingForm.reset(); const iSD = new Date(currentDate); if (slotInfo) iSD.setHours(slotInfo.hour, slotInfo.minute, 0, 0); const iED = new Date(iSD.getTime() + 36e5); document.getElementById('lane-select').value = slotInfo.lane;
+                    startPicker = flatpickr("#start-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: iSD });
+                    endPicker = flatpickr("#end-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: iED, minDate: iSD });
                 }
-                updateSuggestionLists();
                 modal.style.display = 'flex';
             }
-            
             function closeModal() { if (startPicker) startPicker.destroy(); if (endPicker) endPicker.destroy(); editingBookingId = null; bookingForm.reset(); modal.style.display = 'none'; }
-            function closeInfoBox() { document.getElementById('info-box-wrapper').classList.add('is-collapsed'); }
-            function clearSelection() { const selected = document.querySelector('.booking-block.selected'); if (selected) selected.classList.remove('selected'); infoBoxPlaceholder.style.display = 'block'; infoBoxDetails.style.display = 'none'; }
-            
-            function updateInfoBox(block) {
-                clearSelection(); block.classList.add('selected'); const data = block.dataset; const startDate = new Date(data.startDate); const endDate = new Date(data.endDate); const startTime = formatDate(startDate, 'HH:mm'); let endTime = formatDate(endDate, 'HH:mm'); let displayEndDate = endDate; if (endTime === "00:00" && startDate.getTime() < endDate.getTime()) { endTime = "24:00"; displayEndDate = new Date(endDate.getTime() - 60000); }
-                document.getElementById('info-lane-number').textContent = data.lane;
-                document.getElementById('info-datetime').textContent = `${formatDate(startDate, 'YYYY/MM/DD')} ${startTime} ～ ${formatDate(displayEndDate, 'YYYY/MM/DD')} ${endTime}`;
-                document.getElementById('info-user-name').textContent = data.userName;
-                document.getElementById('info-car-number').textContent = data.carNumber;
-                document.getElementById('info-booking-type').textContent = data.bookingType;
-                let staffInfo = data.staffName; if (data.staffName2) staffInfo += `, ${data.staffName2}`;
-                document.getElementById('info-staff-name').textContent = staffInfo;
-                document.getElementById('info-loaner').textContent = data.loaner;
-                document.getElementById('info-pickup').textContent = data.pickup;
-                document.getElementById('info-delivery').textContent = data.delivery;
-                infoBoxPlaceholder.style.display = 'none'; document.getElementById('info-box-wrapper').classList.remove('is-collapsed'); infoBoxDetails.style.display = 'block';
-            }
-            
-            function updateSuggestionLists() { const uniqueUserNames = [...new Set(allBookings.map(b => b.userName).filter(Boolean))]; document.getElementById('user-name-list').innerHTML = uniqueUserNames.map(name => `<option value="${name}"></option>`).join(''); }
-            
-            function addBookingToList(booking) { const row = document.createElement('tr'); let staffList = booking.staffName; if (booking.staffName2) staffList += `, ${booking.staffName2}`; row.innerHTML = `<td>${booking.lane}</td><td>${booking.userName}</td><td>${booking.carNumber}</td><td>${booking.bookingType}</td><td>${staffList}</td><td>${formatDate(booking.startDate, 'MM/DD HH:mm')} ～ ${formatDate(booking.endDate, 'MM/DD HH:mm')}</td>`; dailyListBody.appendChild(row); }
-            
-            function createBookingBlock(booking) {
-                const block = document.createElement('div'); block.id = booking.id; block.className = `booking-block lane-color-${booking.lane}`; block.innerHTML = `<div class="booking-block-content"><div class="booking-block-line1">${booking.userName || ''} / ${booking.carNumber || ''}</div><div class="booking-block-line2">${booking.bookingType || ''} / ${booking.staffName || ''}${booking.staffName2 ? ` / ${booking.staffName2}` : ''}</div></div>`; Object.keys(booking).forEach(key => { if (typeof booking[key] !== 'object') block.dataset[key] = booking[key]; }); block.dataset.startDate = booking.startDate.toISOString(); block.dataset.endDate = booking.endDate.toISOString(); const dayStart = new Date(currentDate).setHours(startHour, startMinute, 0, 0); const dayEnd = new Date(currentDate).setHours(endHour, 0, 0, 0); const start = Math.max(booking.startDate.getTime(), dayStart); const end = Math.min(booking.endDate.getTime(), dayEnd); const duration = (end - start) / 60000; if (duration > 0) { block.style.left = `${((start - dayStart) / 60000 / 15) * slotWidth}px`; block.style.width = `${(duration / 15) * slotWidth}px`; } else { block.style.display = 'none'; } if (booking.startDate.getTime() < dayStart) block.classList.add('starts-before'); if (booking.endDate.getTime() > dayEnd) block.classList.add('ends-after'); addInteractions(block); const wrapper = document.getElementById(`lane-wrapper-${booking.lane}`); if(wrapper) wrapper.appendChild(block);
-            }
+            function clearSelection() { const s=document.querySelector('.booking-block.selected');if(s)s.classList.remove('selected');infoBoxPlaceholder.style.display='block';infoBoxDetails.style.display='none';}
+            function updateInfoBox(b){clearSelection(); b.classList.add('selected');const d=b.dataset,sD=new Date(d.startDate),eD=new Date(d.endDate),sT=formatDate(sD,'HH:mm');let eT=formatDate(eD,'HH:mm'),dED=eD;if(eT==="00:00"&&sD<eD){eT="24:00";dED=new Date(eD-6e4);}
+            document.getElementById('info-lane-number').textContent=d.lane;document.getElementById('info-datetime').textContent=`${formatDate(sD,'YYYY/MM/DD')} ${sT} ～ ${formatDate(dED,'YYYY/MM/DD')} ${eT}`;document.getElementById('info-user-name').textContent=d.userName;document.getElementById('info-car-number').textContent=d.carNumber;document.getElementById('info-booking-type').textContent=d.bookingType;let sI=d.staffName;if(d.staffName2)sI+=`, ${d.staffName2}`;document.getElementById('info-staff-name').textContent=sI;document.getElementById('info-loaner').textContent=d.loaner;document.getElementById('info-pickup').textContent=d.pickup;document.getElementById('info-delivery').textContent=d.delivery;
+            infoBoxPlaceholder.style.display='none';document.getElementById('info-box-wrapper').classList.remove('is-collapsed');infoBoxDetails.style.display='block';}
+            function updateSuggestionLists() { const u = [...new Set(allBookings.map(b => b.userName).filter(Boolean))]; document.getElementById('user-name-list').innerHTML = u.map(n => `<option value="${n}"></option>`).join(''); }
+            function buildSchedulerUI(){const h=schedulerContainer.querySelector('.time-header'),b=schedulerContainer.querySelector('.scheduler-body');h.innerHTML='<div class="header-spacer"></div>';b.innerHTML='';const tM=(endHour-startHour)*60-startMinute;for(let i=0;i<=Math.ceil(tM/30);i++){const r=startHour+Math.floor((startMinute+i*30)/60),m=(startMinute+i*30)%60;h.innerHTML+=`<div class="half-hour-label">${('0'+r).slice(-2)}:${('0'+m).slice(-2)}</div>`;}
+            for(let i=1;i<=totalLanes;i++){const l=document.createElement('div');l.className='lane';l.innerHTML=`<div class="lane-label">${['①','②','③','④','⑤','検査'][i-1]}</div><div class="time-slots-wrapper" id="lane-wrapper-${i}"></div>`;const w=l.querySelector('.time-slots-wrapper');w.addEventListener('dragover',e=>e.preventDefault());w.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain'),bo=allBookings.find(b=>b.id===id);if(!bo)return;const r=w.getBoundingClientRect(),x=e.clientX-r.left+w.scrollLeft,sI=Math.round(x/slotWidth),nS=new Date(new Date(currentDate).setHours(startHour,startMinute,0,0)+sI*9e5),nE=new Date(nS.getTime()+(bo.endDate-bo.startDate));const o=allBookings.some(b=>b.id!==id&&b.lane===i&&nS<b.endDate&&nE>b.startDate);if(o){alert('他の予約と重複します。');}else{bo.startDate=nS;bo.endDate=nE;bo.lane=i;saveBooking(bo);}});for(let j=0;j<tM/15;j++){const s=document.createElement('div'),r=startHour+Math.floor((startMinute+j*15)/60),m=(startMinute+j*15)%60;s.className='time-slot';s.addEventListener('click',()=>{if(isEditor)openModal({lane:i,hour:r,minute:m});});if(m===0)s.classList.add('solid-line');else if(m===30)s.classList.add('dashed-line');else s.classList.add('dotted-line');w.appendChild(s);}b.appendChild(l);}}
+            function renderDailySchedule(){schedulerContainer.querySelectorAll('.booking-block').forEach(b=>b.remove());dailyListBody.innerHTML='';const sD=new Date(currentDate).setHours(0,0,0,0),eD=new Date(currentDate).setHours(23,59,59,999);const bFD=allBookings.filter(b=>b.startDate<eD&&b.endDate>sD);bFD.sort((a,b)=>a.lane-b.lane||a.startDate-b.startDate).forEach(b=>{createBookingBlock(b);addBookingToList(b);});if(bFD.length===0)dailyListBody.innerHTML='<tr class="no-booking-row"><td colspan="6">本日の予約はありません。</td></tr>';clearSelection();}
+            function createBookingBlock(b){const k=document.createElement('div');k.id=b.id;k.className=`booking-block lane-color-${b.lane}`;k.innerHTML=`<div class="booking-block-content"><div class="booking-block-line1">${b.userName||''}/${b.carNumber||''}</div><div class="booking-block-line2">${b.bookingType||''}/${b.staffName||''}${b.staffName2?`/${b.staffName2}`:''}</div></div>`;Object.keys(b).forEach(y=>{if(typeof b[y]!=='object')k.dataset[y]=b[y]});k.dataset.startDate=b.startDate.toISOString();k.dataset.endDate=b.endDate.toISOString();const s=new Date(currentDate).setHours(startHour,startMinute,0,0),e=Math.max(b.startDate,s),d=Math.min(b.endDate,new Date(currentDate).setHours(endHour,0,0,0)),u=(d-e)/6e4;if(u>0){k.style.left=`${((e-s)/9e5)*slotWidth}px`;k.style.width=`${(u/15)*slotWidth}px`;}else{k.style.display='none';}if(b.startDate<s)k.classList.add('starts-before');if(b.endDate>new Date(currentDate).setHours(endHour,0,0,0))k.classList.add('ends-after');addInteractions(k);const w=document.getElementById(`lane-wrapper-${b.lane}`);if(w)w.appendChild(k);}
+            function addInteractions(b){b.addEventListener('click',e=>{e.stopPropagation();if(e.currentTarget.classList.contains('selected')){clearSelection();}else{updateInfoBox(e.currentTarget);}});b.draggable=true;b.addEventListener('dragstart',e=>{if(e.target.classList.contains('resizing'))e.preventDefault();e.dataTransfer.setData('text/plain',e.target.id);});}
+            function addBookingToList(b){const r=document.createElement('tr');let s=b.staffName;if(b.staffName2)s+=`,${b.staffName2}`;r.innerHTML=`<td>${b.lane}</td><td>${b.userName}</td><td>${b.carNumber}</td><td>${b.bookingType}</td><td>${s}</td><td>${formatDate(b.startDate,'MM/DD HH:mm')}～${formatDate(b.endDate,'MM/DD HH:mm')}</td>`;dailyListBody.appendChild(r);}
+            function renderForDate(d){currentDate=d;updateDateDisplay(d);renderDailySchedule();}
 
-            function addInteractions(block) {
-                addResizeListeners(block, 'right'); addResizeListeners(block, 'left'); block.addEventListener('click', (e) => { e.stopPropagation(); if (e.currentTarget.classList.contains('selected')) { clearSelection(); closeInfoBox(); return; } updateInfoBox(e.currentTarget); }); block.draggable = true; block.addEventListener('dragstart', (e) => { if (e.target.classList.contains('resizing')) { e.preventDefault(); return; } e.dataTransfer.setData('text/plain', e.target.id); setTimeout(() => e.target.classList.add('dragging'), 0); }); block.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
-            }
-
-            function addResizeListeners(block, direction) {
-                if ((direction === 'left' && block.classList.contains('starts-before')) || (direction === 'right' && block.classList.contains('ends-after'))) return;
-                const handle = document.createElement('div'); handle.className = direction === 'right' ? 'resize-handle' : 'resize-handle-left'; block.appendChild(handle);
-                handle.addEventListener('mousedown', e => {
-                    e.preventDefault(); e.stopPropagation(); const startX = e.pageX, startWidth = block.offsetWidth, startLeft = block.offsetLeft; block.classList.add('resizing');
-                    const handleMouseMove = moveEvent => {
-                        const deltaX = moveEvent.pageX - startX;
-                        if (direction === 'right') { const newWidth = startWidth + deltaX; if (newWidth >= slotWidth) block.style.width = `${newWidth}px`; }
-                        else { const newWidth = startWidth - deltaX; const newLeft = startLeft + deltaX; if (newWidth >= slotWidth) { block.style.width = `${newWidth}px`; block.style.left = `${newLeft}px`; } }
-                    };
-                    const handleMouseUp = () => {
-                        const booking = allBookings.find(b => b.id === block.id);
-                        if (booking) {
-                            const dayStartMillis = new Date(currentDate).setHours(startHour, startMinute, 0, 0);
-                            const newStartMillis = dayStartMillis + (Math.round(block.offsetLeft / slotWidth) * slotWidth / slotWidth * 15 * 60000);
-                            const newEndMillis = dayStartMillis + ((block.offsetLeft + Math.round(block.offsetWidth / slotWidth) * slotWidth) / slotWidth * 15 * 60000);
-                            if (direction === 'left') booking.startDate = new Date(newStartMillis); else booking.endDate = new Date(newEndMillis);
-                            if (booking.startDate >= booking.endDate) { /* revert */ } else saveBooking(booking);
-                        }
-                        block.classList.remove('resizing'); document.removeEventListener('mousemove', handleMouseMove); document.removeEventListener('mouseup', handleMouseUp);
-                    };
-                    document.addEventListener('mousemove', handleMouseMove); document.addEventListener('mouseup', handleMouseUp);
-                });
-            }
-
-            function renderDailySchedule() {
-                schedulerContainer.querySelector('.scheduler-body').querySelectorAll('.booking-block').forEach(b => b.remove()); dailyListBody.innerHTML = ''; const startOfDay = new Date(currentDate).setHours(0, 0, 0, 0); const endOfDay = new Date(currentDate).setHours(23, 59, 59, 999); const bookingsForDay = allBookings.filter(b => b.startDate.getTime() < endOfDay && b.endDate.getTime() > startOfDay); bookingsForDay.sort((a,b) => a.lane - b.lane || a.startDate - b.startDate).forEach(b => { createBookingBlock(b); addBookingToList(b); }); if (bookingsForDay.length === 0) dailyListBody.innerHTML = '<tr class="no-booking-row"><td colspan="6">本日の予約はありません。</td></tr>'; clearSelection(); updateCurrentTimeLine();
-            }
-
-            function buildSchedulerUI() {
-                const header = schedulerContainer.querySelector('.time-header'); const body = schedulerContainer.querySelector('.scheduler-body'); header.innerHTML = '<div class="header-spacer"></div>'; body.innerHTML = ''; const totalMinutes = (endHour - startHour) * 60 - startMinute; for (let i = 0; i <= Math.ceil(totalMinutes / 30); i++) { const h = startHour + Math.floor((startMinute + i * 30) / 60); const m = (startMinute + i * 30) % 60; header.innerHTML += `<div class="half-hour-label">${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}</div>`; }
-                for (let i = 1; i <= totalLanes; i++) {
-                    const lane = document.createElement('div'); lane.className = 'lane'; lane.innerHTML = `<div class="lane-label">${['①', '②', '③', '④', '⑤', '検査'][i-1]}</div><div class="time-slots-wrapper" id="lane-wrapper-${i}"></div>`; const wrapper = lane.querySelector('.time-slots-wrapper'); wrapper.addEventListener('dragover', e => e.preventDefault()); wrapper.addEventListener('drop', e => {
-                        e.preventDefault(); const id = e.dataTransfer.getData('text/plain'); const booking = allBookings.find(b => b.id === id); if (!booking) return; const rect = wrapper.getBoundingClientRect(); const x = e.clientX - rect.left + wrapper.scrollLeft; const slotIndex = Math.round(x / slotWidth); const newStart = new Date(new Date(currentDate).setHours(startHour, startMinute, 0, 0) + slotIndex * 15 * 60000); const newEnd = new Date(newStart.getTime() + (booking.endDate.getTime() - booking.startDate.getTime())); const isOverlapping = allBookings.some(b => b.id !== id && b.lane === i && newStart < b.endDate && newEnd > b.startDate); if (isOverlapping) { alert('他の予約と重複します。'); renderDailySchedule(); } else { booking.startDate = newStart; booking.endDate = newEnd; booking.lane = i; saveBooking(booking); }
-                    }); for (let j = 0; j < totalMinutes / 15; j++) { const slot = document.createElement('div'); const h = startHour + Math.floor((startMinute + j * 15) / 60); const m = (startMinute + j * 15) % 60; slot.className = 'time-slot'; slot.addEventListener('click', () => { if (isEditor) openModal({ lane: i, hour: h, minute: m }); }); if (m === 0) slot.classList.add('solid-line'); else if (m === 30) slot.classList.add('dashed-line'); else slot.classList.add('dotted-line'); wrapper.appendChild(slot); } body.appendChild(lane);
-                }
-            }
-            
-            function renderForDate(date) { currentDate = date; updateDateDisplay(date); if (currentView === 'daily') renderDailySchedule(); else { /* renderMonthCalendar(date) */ } }
-            function toggleView(view) { /* ... 月表示は省略 ... */ }
-            
-            // =========================================================================
-            // 5. イベントリスナーの登録
-            // =========================================================================
+            // 5. イベントリスナー
             todayButton.addEventListener('click', () => renderForDate(new Date()));
             prevDayButton.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() - 1); renderForDate(currentDate); });
             nextDayButton.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() + 1); renderForDate(currentDate); });
-            viewToggleButton.addEventListener('click', () => alert('月表示機能は現在開発中です。'));
+            viewToggleButton.addEventListener('click', ()=>alert('月表示は現在開発中です。'));
             closeButton.addEventListener('click', closeModal); cancelButton.addEventListener('click', closeModal);
             infoBoxCloseButton.addEventListener('click', clearSelection);
             document.getElementById('info-box-header').addEventListener('click', e => { if (!e.target.closest('#info-box-toggle-button')) document.getElementById('info-box-wrapper').classList.toggle('is-collapsed'); });
             document.getElementById('info-box-toggle-button').addEventListener('click', () => document.getElementById('info-box-wrapper').classList.toggle('is-collapsed'));
-            backupButton.addEventListener('click', exportData);
-            restoreButton.addEventListener('click', () => restoreFileInput.click());
-            clearDataButton.addEventListener('click', clearAllData);
 
-            bookingForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const startDate = startPicker.selectedDates[0]; const endDate = endPicker.selectedDates[0];
-                if (!startDate || !endDate || endDate <= startDate) { alert("日時を正しく選択してください。"); return; }
-                const targetLane = parseInt(document.getElementById('lane-select').value, 10);
-                const isOverlapping = allBookings.some(b => b.id !== editingBookingId && b.lane === targetLane && startDate < b.endDate && endDate > b.startDate);
-                if (isOverlapping) { alert("予約が重複しています。"); return; }
-                const bookingData = {
-                    id: editingBookingId, lane: targetLane, startDate, endDate,
-                    userName: document.getElementById('user-name').value, carNumber: document.getElementById('car-number').value,
-                    bookingType: document.getElementById('booking-type').value, staffName: document.getElementById('staff-select').value,
-                    staffName2: document.getElementById('staff-select-2').value, loaner: document.querySelector('input[name="loaner"]:checked').value,
-                    pickup: document.querySelector('input[name="pickup"]:checked').value, delivery: document.querySelector('input[name="delivery"]:checked').value
-                };
-                if (await saveBooking(bookingData)) closeModal();
+            bookingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();const sD=startPicker.selectedDates[0],eD=endPicker.selectedDates[0];if(!sD||!eD||eD<=sD){alert("日時を正しく選択してください。");return;}const tL=parseInt(document.getElementById('lane-select').value,10);const o=allBookings.some(b=>b.id!==editingBookingId&&b.lane===tL&&sD<b.endDate&&eD>b.startDate);if(o){alert("予約が重複しています。");return;}
+                const bD={id:editingBookingId,lane:tL,startDate:sD,endDate:eD,userName:document.getElementById('user-name').value,carNumber:document.getElementById('car-number').value,bookingType:document.getElementById('booking-type').value,staffName:document.getElementById('staff-select').value,staffName2:document.getElementById('staff-select-2').value,loaner:document.querySelector('input[name="loaner"]:checked').value,pickup:document.querySelector('input[name="pickup"]:checked').value,delivery:document.querySelector('input[name="delivery"]:checked').value};
+                if(await saveBooking(bD))closeModal();
             });
-
-            editBookingButton.addEventListener('click', () => { const selected = document.querySelector('.booking-block.selected'); if (selected) { const booking = allBookings.find(b => b.id === selected.id); if (booking) openModal(null, booking); } });
-            deleteBookingButton.addEventListener('click', () => { const selected = document.querySelector('.booking-block.selected'); if (selected && confirm("この予約を削除しますか？")) deleteBooking(selected.id); });
-            currentDateDisplay.addEventListener('click', () => flatpickr(currentDateDisplay, { locale: "ja", defaultDate: currentDate, onClose: (dates) => { if (dates[0]) renderForDate(dates[0]); } }).open());
-
-            // =========================================================================
-            // 6. アプリケーションの初期化
-            // =========================================================================
-            function timeTick() { updateCurrentTimeLine(); requestAnimationFrame(timeTick); }
+            editBookingButton.addEventListener('click',()=>{const s=document.querySelector('.booking-block.selected');if(s){const b=allBookings.find(b=>b.id===s.id);if(b)openModal(null,b);}});
+            deleteBookingButton.addEventListener('click',()=>{const s=document.querySelector('.booking-block.selected');if(s&&confirm("この予約を削除しますか？"))deleteBooking(s.id);});
+            currentDateDisplay.addEventListener('click',()=>flatpickr(currentDateDisplay,{locale:"ja",defaultDate:currentDate,onClose:d=>{if(d[0])renderForDate(d[0]);}}).open());
+            
+            // 6. 初期化
             buildSchedulerUI();
             setupRealtimeListener();
             document.getElementById('info-box-wrapper').classList.add('is-collapsed');
             renderForDate(new Date());
-            timeTick();
-        });   
+        });
     </script>
 </body>
 </html>
