@@ -365,22 +365,23 @@
     .user-car-grid input {
     width: auto; /* このグリッド内の入力欄は自動幅にします */
 }
-</style>  /* ←【修正点】スラッシュを追加して、閉じるタグに直す！ */
-        /* Netlifyのログアウトボタン用のスタイル */
-        [data-netlify-identity-menu] {
-            margin-left: auto; /* 右端に配置 */
-        }
-        [data-netlify-identity-menu] .netlify-identity-button {
-            background-color: #6c757d;
-            color: white;
-            border-radius: 4px;
-            padding: 8px 15px;
-            font-size: 1em;
-            font-weight: normal;
-        }
-        [data-netlify-identity-menu] .netlify-identity-button:hover {
-            background-color: #5a6268;
-        }
+</style>
+<style>
+    /* Netlifyのログアウトボタン用のスタイル */
+    [data-netlify-identity-menu] {
+        margin-left: auto; /* 右端に配置 */
+    }
+    [data-netlify-identity-menu] .netlify-identity-button {
+        background-color: #6c757d;
+        color: white;
+        border-radius: 4px;
+        padding: 8px 15px;
+        font-size: 1em;
+        font-weight: normal;
+    }
+    [data-netlify-identity-menu] .netlify-identity-button:hover {
+        background-color: #5a6268;
+    }
 </style>
 </head>
 <body>
