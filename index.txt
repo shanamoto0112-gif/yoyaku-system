@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約管理システム - ログイン</title>
+    
+    <!-- Google Fontsから美しいフォントを読み込みます -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================== */
+        /* 全体のスタイル */
+        /* ============================== */
+        body {
+            margin: 0;
+            font-family: 'Noto Sans JP', sans-serif; /* 美しい日本語フォントを指定 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5; /* 少し青みがかった、洗練された背景色 */
+        }
+
+        /* ============================== */
+        /* ログインパネルのスタイル */
+        /* ============================== */
+        .login-panel {
+            background-color: #ffffff;
+            border-radius: 8px; /* 角を丸くする */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* 影をつけて立体感を出す */
+            width: 400px;
+            max-width: 90%; /* スマホでも見やすいように */
+            overflow: hidden; /* 角丸の外にはみ出さないように */
+            text-align: center;
+        }
+
+        /* パネルのヘッダー部分 */
+        .panel-header {
+            background-color: #0056b3; /* 濃いブルーで引き締める */
+            color: white;
+            padding: 25px 20px;
+        }
+        .panel-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        /* パネルのメインコンテンツ部分 */
+        .panel-body {
+            padding: 40px 30px;
+        }
+        .panel-body p {
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        /* Netlifyのログインボタンを内包するdivのスタイル */
+        /* この中に自動でボタンが生成されます */
+        [data-netlify-identity-menu] .netlify-identity-button {
+            background-color: #007bff !important;
+            border-radius: 5px !important;
+            padding: 12px 20px !important;
+            font-size: 1em !important;
+            font-weight: bold !important;
+            transition: background-color 0.3s;
+        }
+        [data-netlify-identity-menu] .netlify-identity-button:hover {
+            background-color: #0056b3 !important;
+        }
+        
+        /* パネルのフッター部分 */
+        .panel-footer {
+            background-color: #f7f7f7;
+            padding: 15px;
+            font-size: 0.8em;
+            color: #888;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+    <!-- Netlify Identity Widgetのスクリプトを読み込みます -->
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+
+    <div class="login-panel">
+        <div class="panel-header">
+            <h1>予約管理システム</h1>
+        </div>
+        <div class="panel-body">
+            <p>ログインしてください</p>
+            <!-- このdivの中にNetlifyのログインボタンが表示されます -->
+            <div data-netlify-identity-menu></div>
+        </div>
+        <div class="panel-footer">
+            <!-- ↓ここの会社名は自由に変更してください -->
+            <p>&copy; 2025 Maruni Co.,Ltd</p>
+        </div>
+    </div>
+
+    <script>
+        // ログインに成功したら、自動的にyoyaku.htmlへ移動する
+        netlifyIdentity.on('login', user => {
+            // Netlify管理画面で設定した役割(role)をコンソールに表示して確認
+            console.log('Logged in user:', user);
+            console.log('User roles:', user.app_metadata.roles);
+
+            window.location.href = '/yoyaku.html';
+        });
+    </script>
+</body>
+</html>
