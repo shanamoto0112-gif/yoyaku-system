@@ -550,30 +550,32 @@
         const db = firebase.firestore();
 
         document.addEventListener('DOMContentLoaded', () => {
-            // =========================================================================
-            // Netlify Identityによるログイン状態と権限の確認
-            // =========================================================================
-            const user = netlifyIdentity.currentUser();
-            if (!user) {
-                window.location.href = '/index.html';
-                return;
-            }
-            const userRoles = user.app_metadata.roles || [];
-            const isEditor = userRoles.includes('editor');
+    // =========================================================================
+    // Netlify Identityによるログイン状態と権限の確認 ★一時的に無効化！
+    // =========================================================================
+    // const user = netlifyIdentity.currentUser();
+    // if (!user) {
+    //     window.location.href = '/index.html';
+    //     return;
+    // }
+    // const userRoles = user.app_metadata.roles || [];
+    
+    // ★全員が編集できるように、一時的に isEditor を true に固定します
+    const isEditor = true;
 
-            if (!isEditor) {
-                const idsToHide = ['edit-booking-button', 'delete-booking-button', 'backup-button', 'restore-button', 'clear-data-button'];
-                idsToHide.forEach(id => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        element.style.display = 'none';
-                    }
-                });
-                const saveButtonInModal = document.querySelector('#booking-form button[type="submit"]');
-                if (saveButtonInModal) {
-                    saveButtonInModal.style.display = 'none';
-                }
-            }
+    // if (!isEditor) {
+    //     const idsToHide = ['edit-booking-button', 'delete-booking-button', 'backup-button', 'restore-button', 'clear-data-button'];
+    //     idsToHide.forEach(id => {
+    //         const element = document.getElementById(id);
+    //         if (element) {
+    //             element.style.display = 'none';
+    //         }
+    //     });
+    //     const saveButtonInModal = document.querySelector('#booking-form button[type="submit"]');
+    //     if (saveButtonInModal) {
+    //         saveButtonInModal.style.display = 'none';
+    //     }
+    // }
 
             // =========================================================================
             // 1. 変数と定数の定義

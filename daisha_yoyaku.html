@@ -524,6 +524,8 @@
                 return;
             }
             const userRoles = user.app_metadata.roles || [];
+            // ★全員が編集できるように、一時的に isEditor を true に固定します
+    const isEditor = true;
             const isEditor = userRoles.includes('editor');
             if (!isEditor) {
                 ['edit-booking-button', 'delete-booking-button', 'backup-button', 'restore-button', 'clear-data-button'].forEach(id => {
