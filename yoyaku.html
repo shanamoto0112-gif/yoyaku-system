@@ -88,31 +88,56 @@
         display: flex; flex-direction: column;
         border: 1px solid #ccc; background-color: #fff;
         width: fit-content; overflow-x: auto;
+        overflow-y: hidden; /* ← ★★★ これが最後のピースです ★★★ */
     }
     .scheduler-body {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1; /* 残りの高さをすべて埋める */
-        min-height: 0; /* flexアイテムの縮小時の崩れを防ぐ */
-        overflow-y: auto; /* 中身だけをY軸(縦)スクロールさせる */
-        background-color: #e9ecef;
-    }
-    #current-time-line {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* 残りの高さをすべて埋める */
+            min-height: 0; /* flexアイテムの縮小時の崩れを防ぐ */
+            overflow-y: auto; /* 中身だけをY軸(縦)スクロールさせる */
+            overflow-x: hidden; /* ← ★★★ これが突き刺さりを治します ★★★ */
+            background-color: #e9ecef;
+            position: relative; /* ← 追加！赤線の基準をここに */
+        }
+     #current-time-line {
         position: absolute;
-        top: 0;
+        top:  0; /* ← ★★★ 親要素のてっぺんからスタート！ ★★★ */
         width: 2px;
+        height: 246px; /* ← ★★★ 6行 + 罫線6px = 究極の計算結果！ ★★★ */
         background-color: #dc3545;
-        z-index: 35;
+        z-index: 999;
         pointer-events: none;
         display: none;
     }
-    .time-header { display: flex; border-bottom: 1px solid #ccc; background-color: #e9ecef; position: sticky; left: 0; z-index: 10; }
-    .header-spacer { min-width: 40px; box-sizing: border-box; border-right: 1px solid #ccc; }
-    .header-spacer { min-width: 40px; box-sizing: border-box; border-right: 1px solid #ccc; }
+    .time-header { display: flex; border-bottom: 1px solid #ccc; background-color: #e9ecef; position: sticky; left: 0; z-index: 10; height: 30px; box-sizing: border-box; align-items: center; }
+    .header-spacer { min-width: 140px; box-sizing: border-box; border-right: 1px solid #ccc; }
     .half-hour-label { min-width: 60px; text-align: left; padding: 5px 4px; font-size: 0.8em; font-weight: bold; box-sizing: border-box; border-right: 1px solid #ddd; }
-    .lane { display: flex; border-bottom: 1px solid #eee; background-color: #fff; }
+    .lane { 
+        display: flex; 
+        border-bottom: 1px solid #eee; 
+        background-color: #fff; 
+        height: 40px;} /* ← ★これを追加★ */
     .lane:last-child { border-bottom: 1px solid #ccc; }
-    .lane-label { min-width: 40px; padding: 10px; background-color: #f8f9fa; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; position: sticky; left: 0; z-index: 5; }
+    .lane-label {
+        width: 140px;
+        min-width: 140px;
+        max-width: 140px;
+        padding: 10px;
+        background-color: #f8f9fa; /* yoyaku.htmlの元の色を維持 */
+        border-right: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: border-box;
+    }
     .time-slots-wrapper { position: relative; display: flex; }
     .time-slot { min-width: 30px; height: 40px; box-sizing: border-box; }
     .solid-line { border-left: 2px solid #333; }
@@ -227,6 +252,9 @@
         border-radius: 8px;
         margin-bottom: 20px;
     }
+    #yoyaku-schedule-area {
+  position: relative; /* ← ★★★ これが全てを解決します ★★★ */
+  }
     .calendar-header {
         display: flex;
         justify-content: space-between;
@@ -411,8 +439,9 @@
 
     <div id="main-scheduler-container" class="scheduler-container">
         <div class="time-header"></div>
-        <div class="scheduler-body"></div>
-        <div id="current-time-line"></div>
+        <div class="scheduler-body">
+            <div id="current-time-line"></div>
+        </div>
     </div>
 
     <div id="info-box-wrapper">
@@ -530,26 +559,15 @@
     <!-- Firebase Firestore (データベース) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <script>
-        // =======================================================================
-        // 【最重要】↓ この下の「...」の部分だけを、あなたの情報に書き換えてください
-        // =======================================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDsgnJTAbc7FShXFXWBsR25IDXQox8sQjM",
-            authDomain: "maruni-yoyaku-system.firebaseapp.com",
-            projectId: "maruni-yoyaku-system",
-            storageBucket: "maruni-yoyaku-system.firebasestorage.app",
-            messagingSenderId: "419757490787",
-            appId: "1:419757490787:web:095eb61e85d008ea2b2e56"
-        };
-        // =======================================================================
-        // ↑ 書き換えるのはこの中だけです ↑
-        // =======================================================================
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    // Firestoreで使う、様々な機能（アプリ）をまとめて読み込みます
+    import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js"; // 追加！
 
-        // Firebaseを初期化する
-        firebase.initializeApp(firebaseConfig);
-        // Firestoreデータベースへの参照を準備する
-        const db = firebase.firestore();
+    // Firebaseを初期化する
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
         document.addEventListener('DOMContentLoaded', () => {
             // Netlify Identityのチェックを一時的に無効化
@@ -569,21 +587,38 @@
 
             // 2. Firebase(Firestore)機能
             function setupRealtimeListener() {
-                db.collection('yoyaku_bookings').onSnapshot(snapshot => {
-                    allBookings = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, startDate: doc.data().startDate.toDate(), endDate: doc.data().endDate.toDate() }));
-                    renderForDate(currentDate);
-                    updateSuggestionLists();
-                }, error => console.error("データの取得に失敗しました: ", error));
-            }
+    // 【新しい書き方】 collection(db, 'コレクション名') という形で命令する
+            const bookingsCollection = collection(db, 'yoyaku_bookings');
+
+            onSnapshot(bookingsCollection, snapshot => {
+            allBookings = snapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id,
+            // .toDate() を使って、Firestoreの時刻形式からJavaScriptのDate形式に変換する
+            startDate: doc.data().startDate.toDate(),
+            endDate: doc.data().endDate.toDate()
+        }));
+        renderForDate(currentDate);
+        updateSuggestionLists();
+    }, error => console.error("データの取得に失敗: ", error));
+}
             async function saveBooking(bookingData) {
-                try {
-                    const dataToSave = { ...bookingData, startDate: firebase.firestore.Timestamp.fromDate(bookingData.startDate), endDate: firebase.firestore.Timestamp.fromDate(bookingData.endDate) };
-                    const docRef = dataToSave.id ? db.collection('yoyaku_bookings').doc(dataToSave.id) : db.collection('yoyaku_bookings').doc();
-                    if (dataToSave.id) delete dataToSave.id;
-                    await docRef.set(dataToSave, { merge: true });
-                    return true;
-                } catch (error) { console.error('予約の保存に失敗しました:', error); alert('予約の保存に失敗しました。'); return false; }
-            }
+    try {
+        // 【新しい書き方】 Timestamp.fromDate を使う (firebase.firestore は不要に)
+        const dataToSave = { ...bookingData, startDate: Timestamp.fromDate(bookingData.startDate), endDate: Timestamp.fromDate(bookingData.endDate) };
+        
+        // 【新しい書き方】 doc() と collection() を組み合わせて場所を指定する
+        const docRef = dataToSave.id 
+            ? doc(db, 'yoyaku_bookings', dataToSave.id)          // IDがある場合：更新
+            : doc(collection(db, 'yoyaku_bookings')); // IDがない場合：新規作成
+
+        if (dataToSave.id) delete dataToSave.id;
+
+        // 【新しい書き方】 setDoc(場所, データ) という形で命令する
+        await setDoc(docRef, dataToSave, { merge: true });
+        return true;
+    } catch (error) { console.error('予約の保存に失敗:', error); alert('予約の保存に失敗しました。'); return false; }
+}
             async function deleteBooking(bookingId) {
                 try { await db.collection('yoyaku_bookings').doc(bookingId).delete(); return true; }
                 catch (error) { console.error('予約の削除に失敗しました:', error); alert('予約の削除に失敗しました。'); return false; }
@@ -618,7 +653,14 @@
             infoBoxPlaceholder.style.display='none';document.getElementById('info-box-wrapper').classList.remove('is-collapsed');infoBoxDetails.style.display='block';}
             function updateSuggestionLists() { const u = [...new Set(allBookings.map(b => b.userName).filter(Boolean))]; document.getElementById('user-name-list').innerHTML = u.map(n => `<option value="${n}"></option>`).join(''); }
             function buildSchedulerUI(){const h=schedulerContainer.querySelector('.time-header'),b=schedulerContainer.querySelector('.scheduler-body');h.innerHTML='<div class="header-spacer"></div>';b.innerHTML='';const tM=(endHour-startHour)*60-startMinute;for(let i=0;i<=Math.ceil(tM/30);i++){const r=startHour+Math.floor((startMinute+i*30)/60),m=(startMinute+i*30)%60;h.innerHTML+=`<div class="half-hour-label">${('0'+r).slice(-2)}:${('0'+m).slice(-2)}</div>`;}
-            for(let i=1;i<=totalLanes;i++){const l=document.createElement('div');l.className='lane';l.innerHTML=`<div class="lane-label">${['①','②','③','④','⑤','検査'][i-1]}</div><div class="time-slots-wrapper" id="lane-wrapper-${i}"></div>`;const w=l.querySelector('.time-slots-wrapper');w.addEventListener('dragover',e=>e.preventDefault());w.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain'),bo=allBookings.find(b=>b.id===id);if(!bo)return;const r=w.getBoundingClientRect(),x=e.clientX-r.left+w.scrollLeft,sI=Math.round(x/slotWidth),nS=new Date(new Date(currentDate).setHours(startHour,startMinute,0,0)+sI*9e5),nE=new Date(nS.getTime()+(bo.endDate-bo.startDate));const o=allBookings.some(b=>b.id!==id&&b.lane===i&&nS<b.endDate&&nE>b.startDate);if(o){alert('他の予約と重複します。');}else{bo.startDate=nS;bo.endDate=nE;bo.lane=i;saveBooking(bo);}});for(let j=0;j<tM/15;j++){const s=document.createElement('div'),r=startHour+Math.floor((startMinute+j*15)/60),m=(startMinute+j*15)%60;s.className='time-slot';s.addEventListener('click',()=>{if(isEditor)openModal({lane:i,hour:r,minute:m});});if(m===0)s.classList.add('solid-line');else if(m===30)s.classList.add('dashed-line');else s.classList.add('dotted-line');w.appendChild(s);}b.appendChild(l);}}
+            for(let i=1;i<=totalLanes;i++){const l=document.createElement('div');l.className='lane';l.innerHTML=`<div class="lane-label">${['①','②','③','④','⑤','検査'][i-1]}</div><div class="time-slots-wrapper" id="lane-wrapper-${i}"></div>`;const w=l.querySelector('.time-slots-wrapper');w.addEventListener('dragover',e=>e.preventDefault());w.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain'),bo=allBookings.find(b=>b.id===id);if(!bo)return;const r=w.getBoundingClientRect(),x=e.clientX-r.left+w.scrollLeft,sI=Math.round(x/slotWidth),nS=new Date(new Date(currentDate).setHours(startHour,startMinute,0,0)+sI*9e5),nE=new Date(nS.getTime()+(bo.endDate-bo.startDate));const o=allBookings.some(b=>b.id!==id&&b.lane===i&&nS<b.endDate&&nE>b.startDate);if(o){alert('他の予約と重複します。');}else{bo.startDate=nS;bo.endDate=nE;bo.lane=i;saveBooking(bo);}});for(let j=0;j<tM/15;j++){const s=document.createElement('div'),r=startHour+Math.floor((startMinute+j*15)/60),m=(startMinute+j*15)%60;s.className='time-slot';s.addEventListener('click',()=>{if(isEditor)openModal({lane:i,hour:r,minute:m});});if(m===0)s.classList.add('solid-line');else if(m===30)s.classList.add('dashed-line');else s.classList.add('dotted-line');w.appendChild(s);}b.appendChild(l);}
+            // 予約枠の一番上に赤い線を必ず追加
+            if (!b.querySelector('#current-time-line')) {
+                const line = document.createElement('div');
+                line.id = 'current-time-line';
+                b.appendChild(line);
+            }
+        }
             function renderDailySchedule(){schedulerContainer.querySelectorAll('.booking-block').forEach(b=>b.remove());dailyListBody.innerHTML='';const sD=new Date(currentDate).setHours(0,0,0,0),eD=new Date(currentDate).setHours(23,59,59,999);const bFD=allBookings.filter(b=>b.startDate<eD&&b.endDate>sD);bFD.sort((a,b)=>a.lane-b.lane||a.startDate-b.startDate).forEach(b=>{createBookingBlock(b);addBookingToList(b);});if(bFD.length===0)dailyListBody.innerHTML='<tr class="no-booking-row"><td colspan="6">本日の予約はありません。</td></tr>';clearSelection();}
             function createBookingBlock(b){const k=document.createElement('div');k.id=b.id;k.className=`booking-block lane-color-${b.lane}`;k.innerHTML=`<div class="booking-block-content"><div class="booking-block-line1">${b.userName||''}/${b.carNumber||''}</div><div class="booking-block-line2">${b.bookingType||''}/${b.staffName||''}${b.staffName2?`/${b.staffName2}`:''}</div></div>`;Object.keys(b).forEach(y=>{if(typeof b[y]!=='object')k.dataset[y]=b[y]});k.dataset.startDate=b.startDate.toISOString();k.dataset.endDate=b.endDate.toISOString();const s=new Date(currentDate).setHours(startHour,startMinute,0,0),e=Math.max(b.startDate,s),d=Math.min(b.endDate,new Date(currentDate).setHours(endHour,0,0,0)),u=(d-e)/6e4;if(u>0){k.style.left=`${((e-s)/9e5)*slotWidth}px`;k.style.width=`${(u/15)*slotWidth}px`;}else{k.style.display='none';}if(b.startDate<s)k.classList.add('starts-before');if(b.endDate>new Date(currentDate).setHours(endHour,0,0,0))k.classList.add('ends-after');addInteractions(k);const w=document.getElementById(`lane-wrapper-${b.lane}`);if(w)w.appendChild(k);}
             function addInteractions(b){b.addEventListener('click',e=>{e.stopPropagation();if(e.currentTarget.classList.contains('selected')){clearSelection();}else{updateInfoBox(e.currentTarget);}});b.draggable=true;b.addEventListener('dragstart',e=>{if(e.target.classList.contains('resizing'))e.preventDefault();e.dataTransfer.setData('text/plain',e.target.id);});}
@@ -649,6 +691,43 @@
             setupRealtimeListener();
             document.getElementById('info-box-wrapper').classList.add('is-collapsed');
             renderForDate(new Date());
+            // ==========================================================
+            // 現在時刻の赤い線を更新する処理
+            // ==========================================================
+            function updateCurrentTimeLine() {
+              const timeline = document.getElementById('current-time-line');
+              if (!timeline) return; // 要素がなければ何もしない
+
+              const now = new Date();
+              
+              // 今の時間が、今日の営業開始時間(8:30)から何分経過したかを計算
+              const minutesFromStart = (now.getHours() - startHour) * 60 + now.getMinutes() - startMinute;
+              
+              // 予約ブロックの計算式 (15分 = slotWidth) と合わせて、ピクセル位置を計算
+              const position = minutesFromStart * (slotWidth / 15);
+
+              // 営業時間内かどうかをチェック
+              const totalStartMinutes = startHour * 60 + startMinute;
+              const totalEndMinutes = endHour * 60;
+              const totalNowMinutes = now.getHours() * 60 + now.getMinutes();
+              const isBusinessHours = totalNowMinutes >= totalStartMinutes && totalNowMinutes < totalEndMinutes;
+
+              if (isBusinessHours) {
+                // 営業時間内なら、計算した位置に線を移動し、表示する
+                // ★★★ 左側ラベルの幅(140px)を足して、基準点を補正する ★★★
+                timeline.style.left = `${140 + position}px`;
+                timeline.style.display = 'block';
+              } else {
+                // 営業時間外なら、線を隠す
+                timeline.style.display = 'none';
+              }
+            }
+
+            // ページが読み込まれたら、まず一度すぐに実行する
+            updateCurrentTimeLine();
+
+            // その後、1分ごと(60000ミリ秒)に、繰り返し実行し続けるタイマー
+            setInterval(updateCurrentTimeLine, 60000);
         });
     </script>
 </body>

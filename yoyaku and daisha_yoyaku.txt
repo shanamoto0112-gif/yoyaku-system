@@ -1,3 +1,132 @@
+****ここからyoyaku.html****
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約管理システム</title>
+    
+    <!-- Google Fontsから美しいフォントを読み込みます -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================== */
+        /* 全体のスタイル */
+        /* ============================== */
+        body {
+            margin: 0;
+            font-family: 'Noto Sans JP', sans-serif; /* 美しい日本語フォントを指定 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5; /* 少し青みがかった、洗練された背景色 */
+        }
+
+        /* ============================== */
+        /* メインパネルのスタイル */
+        /* ============================== */
+        .main-panel {
+            background-color: #ffffff;
+            border-radius: 8px; /* 角を丸くする */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* 影をつけて立体感を出す */
+            width: 400px;
+            max-width: 90%; /* スマホでも見やすいように */
+            overflow: hidden; /* 角丸の外にはみ出さないように */
+            text-align: center;
+        }
+
+        /* パネルのヘッダー部分 */
+        .panel-header {
+            background-color: #0056b3; /* 濃いブルーで引き締める */
+            color: white;
+            padding: 25px 20px;
+        }
+        .panel-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        /* パネルのメインコンテンツ部分 */
+        .panel-body {
+            padding: 40px 30px;
+        }
+        .panel-body p {
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        /* アクセスボタンのスタイル */
+        .access-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        .access-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        /* パネルのフッター部分 */
+        .panel-footer {
+            background-color: #f7f7f7;
+            padding: 15px;
+            font-size: 0.8em;
+            color: #888;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        /* システム情報 */
+        .system-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-panel">
+        <div class="panel-header">
+            <h1>予約管理システム</h1>
+        </div>
+        <div class="panel-body">
+            <p>システムにアクセスしてください</p>
+            <!-- 直接yoyaku.htmlへのリンク -->
+            <a href="yoyaku.html" class="access-button">予約管理システムへ</a>
+            
+            <div class="system-info">
+                <p><strong>機能：</strong><br>
+                • 予約の作成・編集・削除<br>
+                • 月表示・日表示の切り替え<br>
+                • データの保存・復元</p>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <p>&copy; 2025 Maruni Co.,Ltd</p>
+        </div>
+    </div>
+
+</body>
+</html>
+
+****ここまでyoyaku.html****
+
+****ここからdaisha_yoyaku.html****
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -87,31 +216,29 @@
         display: flex; flex-direction: column;
         border: 1px solid #ccc; background-color: #fff;
         width: fit-content; overflow-x: auto;
-        box-sizing: border-box; /* ← ★★★この一行を追加★★★ */
     }
-        #current-time-line {
+    #current-time-line {
         position: absolute;
-        top: 30px;
+        top: 0;
         width: 2px;
-        height: 327px; /* ← ★★★ 究極の計算結果！ ★★★ */
         background-color: #dc3545;
-        z-index: 999;
+        z-index: 35;
         pointer-events: none;
         display: none;
     }
-     .time-header { display: flex; border-bottom: 1px solid #ccc; background-color: #e4f0e4; /* 少し濃い緑色 */ position: sticky; left: 0; z-index: 10; height: 30px; box-sizing: border-box; align-items: center; }
+    .time-header { display: flex; border-bottom: 1px solid #ccc; background-color: #e4f0e4; /* 少し濃い緑色 */ position: sticky; left: 0; z-index: 10; }
     .header-spacer { min-width: 140px; box-sizing: border-box; border-right: 1px solid #ccc; }
     .half-hour-label { min-width: 60px; text-align: left; padding: 5px 4px; font-size: 0.8em; font-weight: bold; box-sizing: border-box; border-right: 1px solid #ddd; }
-       .scheduler-body {
+        .scheduler-body {
         display: flex;
         flex-direction: column;
         flex-grow: 1; /* 残りの高さをすべて埋める */
         min-height: 0; /* flexアイテムの縮小時の崩れを防ぐ */
         overflow-y: auto; /* ★ここが重要！中身だけをY軸(縦)スクロールさせる */
     }
-        /***** 修正点① *****/
+    /***** 修正点① *****/
     /* .lane の flex: 1 を削除し、yoyaku.html と同じ挙動（高さ固定）にしました */
-    .lane { display: flex; border-bottom: 1px solid #eee; height: 40px; } /* ← ★★★高さを40pxに強制固定★★★ */
+    .lane { display: flex; border-bottom: 1px solid #eee; }
     .lane:last-child { border-bottom: none; }
     .lane-label { width: 140px; min-width: 140px; max-width: 140px; /* 横幅を完全に固定 */ padding: 10px; background-color: #f2f9f2; /* 薄い緑色 */ border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; position: sticky; left: 0; z-index: 5; white-space: nowrap; /* 文字の折り返しを禁止 */ overflow: hidden; /* はみ出した部分を隠す */ text-overflow: ellipsis; /* はみ出す場合は...で表示 */ box-sizing: border-box; }
     .time-slots-wrapper { position: relative; display: flex; }
@@ -418,10 +545,10 @@
 
     <div id="calendar-container" class="hidden"></div>
 
-        <div id="main-scheduler-container" class="scheduler-container">
+    <div id="main-scheduler-container" class="scheduler-container">
         <div class="time-header"></div>
         <div class="scheduler-body"></div>
-        <div id="current-time-line"></div> <!-- ← ★★★外に出した★★★ -->
+        <div id="current-time-line"></div>
     </div>
 
     <div id="info-box-wrapper">
@@ -496,7 +623,135 @@
     <!-- Firebase Firestore (データベース) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
+    <script>
+        // =======================================================================
+        // 【最重要】↓ この下の「...」の部分だけを、あなたの情報に書き換えてください
+        // =======================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsgnJTAbc7FShXFXWBsR25IDXQox8sQjM",
+            authDomain: "maruni-yoyaku-system.firebaseapp.com",
+            projectId: "maruni-yoyaku-system",
+            storageBucket: "maruni-yoyaku-system.firebasestorage.app",
+            messagingSenderId: "419757490787",
+            appId: "1:419757490787:web:095eb61e85d008ea2b2e56"
+        };
+        // =======================================================================
+        // ↑ 書き換えるのはこの中だけです ↑
+        // =======================================================================
 
-    <script type="module" src="./daisha-scheduler.js"></script>
+        // Firebaseを初期化する
+        firebase.initializeApp(firebaseConfig);
+        // Firestoreデータベースへの参照を準備する
+        const db = firebase.firestore();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Netlify Identityのチェックを一時的に無効化
+            const isEditor = true;
+
+            // 1. 変数と定数の定義
+            const carList = ["102", "9572", "1287", "1248", "9047", "サービス代車A", "サービス代車B", "サービス代車C"];
+            const totalLanes = carList.length;
+            const slotWidth = 30;
+            const startHour = 8;
+            const startMinute = 30;
+            const endHour = 19;
+            let currentDate = new Date();
+            let allBookings = [];
+            let startPicker, endPicker;
+            let editingBookingId = null;
+            let currentView = 'daily';
+
+            // 2. Firebase(Firestore)機能
+            function setupRealtimeListener() {
+                db.collection('daisha_bookings').onSnapshot(snapshot => {
+                    allBookings = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, startDate: doc.data().startDate.toDate(), endDate: doc.data().endDate.toDate() }));
+                    renderForDate(currentDate);
+                    updateSuggestionLists();
+                }, error => console.error("代車データの取得に失敗: ", error));
+            }
+            async function saveBooking(bookingData) {
+                try {
+                    const dataToSave = { ...bookingData, startDate: firebase.firestore.Timestamp.fromDate(bookingData.startDate), endDate: firebase.firestore.Timestamp.fromDate(bookingData.endDate) };
+                    const docRef = dataToSave.id ? db.collection('daisha_bookings').doc(dataToSave.id) : db.collection('daisha_bookings').doc();
+                    if (dataToSave.id) delete dataToSave.id;
+                    await docRef.set(dataToSave, { merge: true });
+                    return true;
+                } catch (error) { console.error('代車予約の保存に失敗:', error); alert('代車予約の保存に失敗しました。'); return false; }
+            }
+            async function deleteBooking(bookingId) {
+                try { await db.collection('daisha_bookings').doc(bookingId).delete(); return true; }
+                catch (error) { console.error('代車予約の削除に失敗:', error); alert('代車予約の削除に失敗しました。'); return false; }
+            }
+            function clearAllData() { if (confirm('全ての代車予約データを削除しますか？')) { allBookings.forEach(b => deleteBooking(b.id)); } }
+
+            // 3. HTML要素の取得
+            const modal = document.getElementById('booking-modal'), bookingForm = document.getElementById('booking-form'), closeButton = document.querySelector('.modal-close-button'), cancelButton = document.getElementById('cancel-button'), infoBoxPlaceholder = document.getElementById('info-box-placeholder'), infoBoxDetails = document.getElementById('info-box-details'), infoBoxCloseButton = document.getElementById('info-box-close-button'), prevDayButton = document.getElementById('prev-day-button'), nextDayButton = document.getElementById('next-day-button'), currentDateDisplay = document.getElementById('current-date-display'), deleteBookingButton = document.getElementById('delete-booking-button'), editBookingButton = document.getElementById('edit-booking-button'), dailyListBody = document.getElementById('daily-list-body'), todayButton = document.getElementById('today-button'), backupButton = document.getElementById('backup-button'), restoreButton = document.getElementById('restore-button'), clearDataButton = document.getElementById('clear-data-button'), restoreFileInput = document.getElementById('restore-file-input'), viewToggleButton = document.getElementById('view-toggle-button'), calendarContainer = document.getElementById('calendar-container'), schedulerContainer = document.getElementById('main-scheduler-container'), currentTimeLine = document.getElementById('current-time-line');
+            
+            // 4. ヘルパー関数とUI構築関数
+            function formatDate(d, f) { const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), a=('0'+d.getDate()).slice(-2), h=('0'+d.getHours()).slice(-2), i=('0'+d.getMinutes()).slice(-2); return f.replace('YYYY',y).replace('MM',m).replace('DD',a).replace('HH',h).replace('mm',i); }
+            function updateDateDisplay(d) { currentDateDisplay.textContent = formatDate(d, 'YYYY年MM月DD日'); }
+            function openModal(slotInfo, bookingToEdit = null) {
+                if (startPicker) startPicker.destroy(); if (endPicker) endPicker.destroy();
+                if (bookingToEdit) {
+                    editingBookingId = bookingToEdit.id;
+                    document.getElementById('user-name').value = bookingToEdit.userName;
+                    document.getElementById('lane-select').value = bookingToEdit.lane;
+                    startPicker = flatpickr("#start-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: bookingToEdit.startDate });
+                    endPicker = flatpickr("#end-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: bookingToEdit.endDate, minDate: bookingToEdit.startDate });
+                } else {
+                    editingBookingId = null; bookingForm.reset(); const iSD = new Date(currentDate); if (slotInfo) iSD.setHours(slotInfo.hour, slotInfo.minute, 0, 0); const iED = new Date(iSD.getTime() + 36e5); document.getElementById('lane-select').value = slotInfo.lane;
+                    startPicker = flatpickr("#start-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: iSD });
+                    endPicker = flatpickr("#end-date-input", { locale: "ja", enableTime: true, time_24hr: true, minuteIncrement: 15, defaultDate: iED, minDate: iSD });
+                }
+                modal.style.display = 'flex';
+            }
+            function closeModal() { if (startPicker) startPicker.destroy(); if (endPicker) endPicker.destroy(); editingBookingId = null; bookingForm.reset(); modal.style.display = 'none'; }
+            function clearSelection() { const s = document.querySelector('.booking-block.selected'); if(s)s.classList.remove('selected'); infoBoxPlaceholder.style.display='block'; infoBoxDetails.style.display='none'; }
+            function updateInfoBox(b) {
+                clearSelection(); b.classList.add('selected'); const d = b.dataset, sD=new Date(d.startDate), eD=new Date(d.endDate), sT=formatDate(sD,'HH:mm'); let eT=formatDate(eD,'HH:mm'), dED=eD; if(eT==="00:00"&&sD<eD){eT="24:00";dED=new Date(eD-6e4);}
+                document.getElementById('info-lane-number').textContent=carList[d.lane-1]; document.getElementById('info-datetime').textContent=`${formatDate(sD,'YYYY/MM/DD')} ${sT} ～ ${formatDate(dED,'YYYY/MM/DD')} ${eT}`; document.getElementById('info-user-name').textContent=d.userName;
+                infoBoxPlaceholder.style.display='none'; document.getElementById('info-box-wrapper').classList.remove('is-collapsed'); infoBoxDetails.style.display='block';
+            }
+            function updateSuggestionLists() { const u = [...new Set(allBookings.map(b => b.userName).filter(Boolean))]; document.getElementById('user-name-list').innerHTML = u.map(n => `<option value="${n}"></option>`).join(''); }
+            function buildSchedulerUI() {
+                const h=schedulerContainer.querySelector('.time-header'), b=schedulerContainer.querySelector('.scheduler-body'); h.innerHTML='<div class="header-spacer"></div>'; b.innerHTML=''; const tM=(endHour-startHour)*60-startMinute; for(let i=0;i<=Math.ceil(tM/30);i++){const r=startHour+Math.floor((startMinute+i*30)/60),m=(startMinute+i*30)%60;h.innerHTML+=`<div class="half-hour-label">${('0'+r).slice(-2)}:${('0'+m).slice(-2)}</div>`;}
+                for(let i=1;i<=totalLanes;i++){
+                    const l=document.createElement('div');l.className='lane';l.innerHTML=`<div class="lane-label">${carList[i-1]}</div><div class="time-slots-wrapper" id="lane-wrapper-${i}"></div>`;const w=l.querySelector('.time-slots-wrapper');
+                    w.addEventListener('dragover',e=>e.preventDefault());w.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain'),bo=allBookings.find(b=>b.id===id);if(!bo)return;const r=w.getBoundingClientRect(),x=e.clientX-r.left+w.scrollLeft,sI=Math.round(x/slotWidth),nS=new Date(new Date(currentDate).setHours(startHour,startMinute,0,0)+sI*9e5),nE=new Date(nS.getTime()+(bo.endDate-bo.startDate));const o=allBookings.some(b=>b.id!==id&&b.lane===i&&nS<b.endDate&&nE>b.startDate);if(o){alert('他の予約と重複します。');}else{bo.startDate=nS;bo.endDate=nE;bo.lane=i;saveBooking(bo);}});
+                    for(let j=0;j<tM/15;j++){const s=document.createElement('div'),r=startHour+Math.floor((startMinute+j*15)/60),m=(startMinute+j*15)%60;s.className='time-slot';s.addEventListener('click',()=>{if(isEditor)openModal({lane:i,hour:r,minute:m});});if(m===0)s.classList.add('solid-line');else if(m===30)s.classList.add('dashed-line');else s.classList.add('dotted-line');w.appendChild(s);}b.appendChild(l);
+                }
+            }
+            function renderDailySchedule(){schedulerContainer.querySelectorAll('.booking-block').forEach(b=>b.remove());dailyListBody.innerHTML='';const sD=new Date(currentDate).setHours(0,0,0,0),eD=new Date(currentDate).setHours(23,59,59,999);const bFD=allBookings.filter(b=>b.startDate<eD&&b.endDate>sD);bFD.sort((a,b)=>a.lane-b.lane||a.startDate-b.startDate).forEach(b=>{createBookingBlock(b);addBookingToList(b);});if(bFD.length===0)dailyListBody.innerHTML='<tr class="no-booking-row"><td colspan="3">本日の予約はありません。</td></tr>';clearSelection();}
+            function createBookingBlock(b){const k=document.createElement('div');k.id=b.id;k.className=`booking-block lane-color-${b.lane%8+1}`;k.innerHTML=`<div class="booking-block-content"><div class="booking-block-line1">${b.userName||''}</div></div>`;Object.keys(b).forEach(y=>{if(typeof b[y]!=='object')k.dataset[y]=b[y]});k.dataset.startDate=b.startDate.toISOString();k.dataset.endDate=b.endDate.toISOString();const s=new Date(currentDate).setHours(startHour,startMinute,0,0),e=Math.max(b.startDate,s),d=Math.min(b.endDate,new Date(currentDate).setHours(endHour,0,0,0)),u=(d-e)/6e4;if(u>0){k.style.left=`${((e-s)/9e5)*slotWidth}px`;k.style.width=`${(u/15)*slotWidth}px`;}else{k.style.display='none';}if(b.startDate<s)k.classList.add('starts-before');if(b.endDate>new Date(currentDate).setHours(endHour,0,0,0))k.classList.add('ends-after');addInteractions(k);const w=document.getElementById(`lane-wrapper-${b.lane}`);if(w)w.appendChild(k);}
+            function addInteractions(b){b.addEventListener('click',e=>{e.stopPropagation();if(e.currentTarget.classList.contains('selected')){clearSelection();}else{updateInfoBox(e.currentTarget);}});b.draggable=true;b.addEventListener('dragstart',e=>{if(e.target.classList.contains('resizing'))e.preventDefault();e.dataTransfer.setData('text/plain',e.target.id);});}
+            function addBookingToList(b){const r=document.createElement('tr');r.innerHTML=`<td>${carList[b.lane-1]}</td><td>${b.userName}</td><td>${formatDate(b.startDate,'MM/DD HH:mm')}～${formatDate(b.endDate,'MM/DD HH:mm')}</td>`;dailyListBody.appendChild(r);}
+            function renderForDate(d){currentDate=d;updateDateDisplay(d);renderDailySchedule();}
+            function populateCarSelect(){document.getElementById('lane-select').innerHTML=carList.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');}
+
+            // 5. イベントリスナー
+            todayButton.addEventListener('click', () => renderForDate(new Date()));
+            prevDayButton.addEventListener('click',()=>{currentDate.setDate(currentDate.getDate()-1);renderForDate(currentDate);});
+            nextDayButton.addEventListener('click',()=>{currentDate.setDate(currentDate.getDate()+1);renderForDate(currentDate);});
+            viewToggleButton.addEventListener('click',()=>alert('月表示は現在開発中です。'));
+            closeButton.addEventListener('click',closeModal);cancelButton.addEventListener('click',closeModal);
+            infoBoxCloseButton.addEventListener('click',clearSelection);
+            document.getElementById('info-box-header').addEventListener('click', e => { if (!e.target.closest('#info-box-toggle-button')) document.getElementById('info-box-wrapper').classList.toggle('is-collapsed'); });
+            document.getElementById('info-box-toggle-button').addEventListener('click', () => document.getElementById('info-box-wrapper').classList.toggle('is-collapsed'));
+            
+            bookingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();const sD=startPicker.selectedDates[0],eD=endPicker.selectedDates[0];if(!sD||!eD||eD<=sD){alert("日時を正しく選択してください。");return;}const tL=parseInt(document.getElementById('lane-select').value,10);const o=allBookings.some(b=>b.id!==editingBookingId&&b.lane===tL&&sD<b.endDate&&eD>b.startDate);if(o){alert("代車の予約が重複しています。");return;}
+                const bD={id:editingBookingId,lane:tL,startDate:sD,endDate:eD,userName:document.getElementById('user-name').value};if(await saveBooking(bD))closeModal();
+            });
+            editBookingButton.addEventListener('click',()=>{const s=document.querySelector('.booking-block.selected');if(s){const b=allBookings.find(b=>b.id===s.id);if(b)openModal(null,b);}});
+            deleteBookingButton.addEventListener('click',()=>{const s=document.querySelector('.booking-block.selected');if(s&&confirm("この予約を削除しますか？"))deleteBooking(s.id);});
+            currentDateDisplay.addEventListener('click',()=>flatpickr(currentDateDisplay,{locale:"ja",defaultDate:currentDate,onClose:d=>{if(d[0])renderForDate(d[0]);}}).open());
+
+            // 6. 初期化
+            buildSchedulerUI(); populateCarSelect(); setupRealtimeListener();
+            document.getElementById('info-box-wrapper').classList.add('is-collapsed');
+            renderForDate(new Date());
+        });
+    </script>
 </body>
 </html>
+****ここまでdaisha_yoyaku.html****
